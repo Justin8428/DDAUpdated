@@ -3,6 +3,8 @@ Updated version of DDA
 
 Original exe from mk77ch "Mike" at http://www.surfaceforums.net/threads/wheres-the-dim-display-after-power-setting-in-windows-8-1.6577/
 
+Decompiled using ILSpy
+
 TODO:
  - retain option to set brightness manually
  - better icon
