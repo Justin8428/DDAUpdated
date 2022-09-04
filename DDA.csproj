@@ -6,6 +6,7 @@
     <UseWindowsForms>True</UseWindowsForms>
     <TargetFramework>net462</TargetFramework>
     <Prefer32Bit>True</Prefer32Bit>
+    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <LangVersion>Preview</LangVersion>
