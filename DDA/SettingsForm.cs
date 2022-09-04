@@ -2,6 +2,7 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Management;
+using System.Management.Automation;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using DDA.Properties;
@@ -143,13 +144,25 @@ public class SettingsForm : Form
 		}
 	}
 
+	private bool IsPlayingVideo() // determine if the display needs to be kept awake, e.g. playing a video
+	{	// also see https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results
+		// essentially, run the powershell script to see if DISPLAY is active, return true if so, otherwise return false
+		//PowerShell ps = PowerShell.Create();
+		//string script = "(powercfg /requests | Select-String -Pattern 'DISPLAY:' -Context 0,1).Context.DisplayPostContext"; // should return 'None.' if display not used
+		//ps.AddScript(script);
+  //      var output = ps.Invoke();
+		//Console.WriteLine(output);
+		// if (output == True) {return True} else {
+		return false; } 
+
 	// actual logic to set and unset brightness after given time
 	private void TimerEventProcessor(object myObject, EventArgs myEventArgs)
 	{
 		TimeSpan idleTime = GetIdleTime();
 		if ((Settings.Default.IdleDelay == 0 && idleTime.TotalSeconds >= 10.0) || (Settings.Default.IdleDelay >= 1 && idleTime.TotalMinutes >= (double)Settings.Default.IdleDelay))
 		{
-			if (!isDimmed) // if display is not dimmed
+			bool isPlayingVideo = IsPlayingVideo(); // currently unimplemented
+			if (!isDimmed && !isPlayingVideo) // if display is not dimmed and not playing video
 			{
 				restoreTo = GetBrightness();
 				// SetBrightness(Settings.Default.Brightness); // set the brightness directly specified by user on form
