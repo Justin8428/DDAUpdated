@@ -1,4 +1,5 @@
 using System;
+using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Drawing;
 using System.Management;
@@ -145,14 +146,27 @@ public class SettingsForm : Form
 	}
 
 	private bool IsPlayingVideo() // determine if the display needs to be kept awake, e.g. playing a video
-	{	// also see https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results
-		// essentially, run the powershell script to see if DISPLAY is active, return true if so, otherwise return false
-		//PowerShell ps = PowerShell.Create();
+	{   // also see https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results 
+        // and https://stackoverflow.com/questions/33654318/c-sharp-run-powershell-command-get-output-as-it-arrives
+        // underlying: https://docs.microsoft.com/en-us/windows/win32/power/system-sleep-criteria
+        // essentially, run the powershell script to see if DISPLAY is active, return true if so, otherwise return false
+  //      PowerShell ps = PowerShell.Create();
 		//string script = "(powercfg /requests | Select-String -Pattern 'DISPLAY:' -Context 0,1).Context.DisplayPostContext"; // should return 'None.' if display not used
 		//ps.AddScript(script);
-  //      var output = ps.Invoke();
-		//Console.WriteLine(output);
-		// if (output == True) {return True} else {
+
+  //      // invoke execution on the pipeline (collecting output)
+  //      Collection<PSObject> PSOutput = ps.Invoke();
+
+  //      // loop through each output object item
+  //      foreach (PSObject outputItem in PSOutput)
+  //      {
+  //          // if null object was dumped to the pipeline during the script then a null object may be present here
+  //          if (outputItem != null)
+  //          {
+  //              System.Diagnostics.Debug.WriteLine($"Output line: [{outputItem}]"); // view outputs
+  //          }
+  //      }
+
 		return false; } 
 
 	// actual logic to set and unset brightness after given time
