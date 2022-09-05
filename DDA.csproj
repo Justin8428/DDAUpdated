@@ -6,7 +6,7 @@
     <UseWindowsForms>True</UseWindowsForms>
     <TargetFramework>net462</TargetFramework>
     <Prefer32Bit>True</Prefer32Bit>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
   </PropertyGroup>
   <PropertyGroup>
     <LangVersion>Preview</LangVersion>
@@ -16,6 +16,9 @@
     <ApplicationIcon>app.ico</ApplicationIcon>
     <RootNamespace />
   </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Remove="DDA.SettingsForm.resx" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Management.Automation.dll" Version="10.0.10586" />
   </ItemGroup>

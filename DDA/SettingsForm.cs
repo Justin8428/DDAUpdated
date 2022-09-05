@@ -50,7 +50,8 @@ public class SettingsForm : Form
 
 	private GroupBox groupBoxBrightness;
 	private CheckBox checkBoxMonitorVideo;
-	private TrackBar trackBarBrightness;
+	private bool checkBoxMonitorVideoChecked = false; // start unchecked
+    private TrackBar trackBarBrightness;
 
 	[DllImport("user32.dll")]
 	private static extern bool GetLastInputInfo(ref LASTINPUTINFO plii); // native input detection
@@ -211,8 +212,21 @@ public class SettingsForm : Form
 
 	}
 
-	// actual logic to set and unset brightness after given time
-	private void TimerEventProcessor(object myObject, EventArgs myEventArgs)
+    // get the goddamn checkbox to work
+	private void checkBoxMonitorVideo_CheckedChanged(object sender, EventArgs e)
+    {
+        if (checkBoxMonitorVideo.Checked)
+        {
+			checkBoxMonitorVideoChecked = true;
+        }
+        else
+        {
+            checkBoxMonitorVideoChecked = false;
+        }
+    }
+
+    // actual logic to set and unset brightness after given time
+    private void TimerEventProcessor(object myObject, EventArgs myEventArgs)
 	{
 		TimeSpan idleTime = GetIdleTime();
 		// set initial condition as 10s if IdleDelay is set to 0
@@ -225,7 +239,7 @@ public class SettingsForm : Form
 				
 				// only do the video check 
 				bool isPlayingVideo = false;
-                if (checkBoxMonitorVideo.Checked)
+                if (checkBoxMonitorVideoChecked)
 				{
                     isPlayingVideo = IsPlayingVideo(); // playing video check, put here so the check is performed only once
                 } 
@@ -356,6 +370,7 @@ public class SettingsForm : Form
 	private void InitializeComponent()
 	{
             this.components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
             this.notifyIcon = new System.Windows.Forms.NotifyIcon(this.components);
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -376,6 +391,7 @@ public class SettingsForm : Form
             // notifyIcon
             // 
             this.notifyIcon.ContextMenuStrip = this.contextMenuStrip;
+            this.notifyIcon.Icon = ((System.Drawing.Icon)(resources.GetObject("notifyIcon.Icon")));
             this.notifyIcon.Text = "DDA";
             this.notifyIcon.Visible = true;
             this.notifyIcon.MouseDoubleClick += new System.Windows.Forms.MouseEventHandler(this.notifyIcon_MouseDoubleClick);
@@ -406,7 +422,7 @@ public class SettingsForm : Form
             // checkBoxAutoStart
             // 
             this.checkBoxAutoStart.Location = new System.Drawing.Point(43, 362);
-            this.checkBoxAutoStart.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.checkBoxAutoStart.Margin = new System.Windows.Forms.Padding(6);
             this.checkBoxAutoStart.Name = "checkBoxAutoStart";
             this.checkBoxAutoStart.Size = new System.Drawing.Size(214, 31);
             this.checkBoxAutoStart.TabIndex = 1;
@@ -418,7 +434,7 @@ public class SettingsForm : Form
             // 
             this.trackBarIdleDelay.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.trackBarIdleDelay.Location = new System.Drawing.Point(6, 76);
-            this.trackBarIdleDelay.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.trackBarIdleDelay.Margin = new System.Windows.Forms.Padding(6);
             this.trackBarIdleDelay.Maximum = 100;
             this.trackBarIdleDelay.Name = "trackBarIdleDelay";
             this.trackBarIdleDelay.Size = new System.Drawing.Size(575, 56);
@@ -432,9 +448,9 @@ public class SettingsForm : Form
             // 
             this.groupBoxIdleDelay.Controls.Add(this.trackBarIdleDelay);
             this.groupBoxIdleDelay.Location = new System.Drawing.Point(37, 37);
-            this.groupBoxIdleDelay.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.groupBoxIdleDelay.Margin = new System.Windows.Forms.Padding(6);
             this.groupBoxIdleDelay.Name = "groupBoxIdleDelay";
-            this.groupBoxIdleDelay.Padding = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.groupBoxIdleDelay.Padding = new System.Windows.Forms.Padding(6);
             this.groupBoxIdleDelay.Size = new System.Drawing.Size(587, 138);
             this.groupBoxIdleDelay.TabIndex = 4;
             this.groupBoxIdleDelay.TabStop = false;
@@ -444,9 +460,9 @@ public class SettingsForm : Form
             // 
             this.groupBoxBrightness.Controls.Add(this.trackBarBrightness);
             this.groupBoxBrightness.Location = new System.Drawing.Point(37, 212);
-            this.groupBoxBrightness.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.groupBoxBrightness.Margin = new System.Windows.Forms.Padding(6);
             this.groupBoxBrightness.Name = "groupBoxBrightness";
-            this.groupBoxBrightness.Padding = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.groupBoxBrightness.Padding = new System.Windows.Forms.Padding(6);
             this.groupBoxBrightness.Size = new System.Drawing.Size(587, 138);
             this.groupBoxBrightness.TabIndex = 5;
             this.groupBoxBrightness.TabStop = false;
@@ -456,7 +472,7 @@ public class SettingsForm : Form
             // 
             this.trackBarBrightness.Dock = System.Windows.Forms.DockStyle.Bottom;
             this.trackBarBrightness.Location = new System.Drawing.Point(6, 76);
-            this.trackBarBrightness.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.trackBarBrightness.Margin = new System.Windows.Forms.Padding(6);
             this.trackBarBrightness.Maximum = 100;
             this.trackBarBrightness.Name = "trackBarBrightness";
             this.trackBarBrightness.Size = new System.Drawing.Size(575, 56);
@@ -468,7 +484,7 @@ public class SettingsForm : Form
             // 
             // checkBoxMonitorVideo
             // 
-            this.checkBoxMonitorVideo.AutoCheck = false;
+            this.checkBoxMonitorVideo.AutoCheck = true;
             this.checkBoxMonitorVideo.AutoSize = true;
             this.checkBoxMonitorVideo.Location = new System.Drawing.Point(43, 403);
             this.checkBoxMonitorVideo.Name = "checkBoxMonitorVideo";
@@ -476,6 +492,7 @@ public class SettingsForm : Form
             this.checkBoxMonitorVideo.TabIndex = 6;
             this.checkBoxMonitorVideo.Text = "Do not dim when video is playing (start DDA as admin, CPU heavy)";
             this.checkBoxMonitorVideo.UseVisualStyleBackColor = true;
+            this.checkBoxMonitorVideo.CheckedChanged += new System.EventHandler(this.checkBoxMonitorVideo_CheckedChanged);
             // 
             // SettingsForm
             // 
@@ -487,7 +504,8 @@ public class SettingsForm : Form
             this.Controls.Add(this.groupBoxBrightness);
             this.Controls.Add(this.groupBoxIdleDelay);
             this.Controls.Add(this.checkBoxAutoStart);
-            this.Margin = new System.Windows.Forms.Padding(6, 6, 6, 6);
+            this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.Margin = new System.Windows.Forms.Padding(6);
             this.Name = "SettingsForm";
             this.Text = "Dim Display After Updated";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SettingsForm_FormClosing);
