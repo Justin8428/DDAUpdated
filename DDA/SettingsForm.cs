@@ -5,8 +5,10 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Management;
 using System.Management.Automation;
+// using System.Threading;
 // using System.Diagnostics.Process;
 using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using DDA.Properties;
 using Microsoft.Win32;
@@ -26,7 +28,7 @@ public class SettingsForm : Form
 		public uint dwTime;
 	}
 
-	private Timer t = new Timer();
+	private System.Windows.Forms.Timer t = new System.Windows.Forms.Timer(); // t is the overall timer
 
 	private bool isDimmed = false;
 
@@ -50,7 +52,7 @@ public class SettingsForm : Form
 
 	private GroupBox groupBoxBrightness;
 	private CheckBox checkBoxMonitorVideo;
-	private bool checkBoxMonitorVideoChecked = false; // start unchecked
+	private bool checkBoxMonitorVideoChecked = true; // start checked
     private TrackBar trackBarBrightness;
 
 	[DllImport("user32.dll")]
@@ -174,7 +176,7 @@ public class SettingsForm : Form
 			// if null object was dumped to the pipeline during the script then a null object may be present here
 			if (outputItem != null)
 			{
-				System.Diagnostics.Debug.WriteLine($"Output line: [{outputItem}]"); // view outputs
+				// System.Diagnostics.Debug.WriteLine($"Output line: [{outputItem}]"); // view outputs
 				string outputString = outputItem.BaseObject as string; // coerce into string https://stackoverflow.com/questions/37467404/how-to-cast-psobject-to-securestring-cannot-implicitly-convert
 				outputString = outputString.Trim('\r', '\n'); // strip new line characters
 				string noVideoPlaying = "None."; // response from powercfg if there is no video playing
@@ -196,24 +198,26 @@ public class SettingsForm : Form
 		return resultVar;
 
 
-		// taken from https://stackoverflow.com/questions/14981785/calling-powercfg-requests-from-c-sharp-gives-wrong-values
-		// maybe refactor into this code, it looks way cleaner and maybe more memory efficient because all the parsing will be done in C# instead of powershell
-		//Process p = new Process();
-		//p.StartInfo.UseShellExecute = false;
-		//p.StartInfo.RedirectStandardOutput = true;
-		//p.StartInfo.FileName = "powercfg";
-		//p.StartInfo.Arguments = "/requests";
-		//p.Start();
+        // taken from https://stackoverflow.com/questions/14981785/calling-powercfg-requests-from-c-sharp-gives-wrong-values
+        // maybe refactor into this code, it looks way cleaner and maybe more memory efficient because all the parsing will be done in C# instead of powershell
+        //Process p = new Process();
+        //p.StartInfo.UseShellExecute = false;
+        //p.StartInfo.RedirectStandardOutput = true;
+        //p.StartInfo.FileName = "powercfg";
+        //p.StartInfo.Arguments = "/requests";
+        //p.Start();
 
-		//string output = p.StandardOutput.ReadToEnd();
-		//p.WaitForExit();
-		//System.Diagnostics.Debug.WriteLine($"Output line: [{output}]");
-		//return false;
+        //string output = p.StandardOutput.ReadToEnd();
+        //p.WaitForExit();
+        //System.Diagnostics.Debug.WriteLine($"Output line: [{output}]");
+        //return false;
 
-	}
+        // using this guy's api project may also help https://github.com/diversenok/Powercfg
+
+    }
 
     // get the goddamn checkbox to work
-	private void checkBoxMonitorVideo_CheckedChanged(object sender, EventArgs e)
+    private void checkBoxMonitorVideo_CheckedChanged(object sender, EventArgs e)
     {
         if (checkBoxMonitorVideo.Checked)
         {
@@ -225,8 +229,32 @@ public class SettingsForm : Form
         }
     }
 
+    //// improved wait function https://stackoverflow.com/questions/10458118/wait-one-second-in-running-program
+    //public void wait(int milliseconds)
+    //{
+    //    var timer1 = new System.Windows.Forms.Timer();
+    //    if (milliseconds == 0 || milliseconds < 0) return;
+
+    //    // Console.WriteLine("start wait timer");
+    //    timer1.Interval = milliseconds;
+    //    timer1.Enabled = true;
+    //    timer1.Start();
+
+    //    timer1.Tick += (s, e) =>
+    //    {
+    //        timer1.Enabled = false;
+    //        timer1.Stop();
+    //        // Console.WriteLine("stop wait timer");
+    //    };
+
+    //    while (timer1.Enabled)
+    //    {
+    //        Application.DoEvents();
+    //    }
+    //}
+
     // actual logic to set and unset brightness after given time
-    private void TimerEventProcessor(object myObject, EventArgs myEventArgs)
+    private async void TimerEventProcessor(object myObject, EventArgs myEventArgs)
 	{
 		TimeSpan idleTime = GetIdleTime();
 		// set initial condition as 10s if IdleDelay is set to 0
@@ -237,7 +265,7 @@ public class SettingsForm : Form
 			if (!isDimmed) // if display is not dimmed 
 			{
 				
-				// only do the video check 
+				// only do the video check if user wants it 
 				bool isPlayingVideo = false;
                 if (checkBoxMonitorVideoChecked)
 				{
@@ -263,7 +291,34 @@ public class SettingsForm : Form
 				else // if display is not dimmed but video IS currently playing
 				{
                     isDimmed = false; // just pass, wait for the next run
-                }
+
+					// wait(10000); 
+					// maybe use stopwatch https://stackoverflow.com/questions/62829899/async-sleep-in-loop
+					// var sw = Stopwatch.StartNew();
+
+					// this whole function is implemented using a Timer (see line 74)
+					// every 250ms, this function runs
+
+					// idleDelay is in minutes...!!
+					t.Stop(); // stop the timer
+                    // System.Diagnostics.Debug.WriteLine($"{Settings.Default.IdleDelay}");
+					if (Settings.Default.IdleDelay == 0)
+					{
+                        await Task.Delay(5000); // edge case where the IdleDelay is set to 10s (= 0 on the slider) so we set the waiting period between firing to be 5s
+                    }
+					else
+					{
+						await Task.Delay(Settings.Default.IdleDelay * 30000); // suspend the timer for half the idle delay setting (e.g. if set to 1 min idle, wait 30s)
+																				   // before resuming the timer.
+																				   // Resuming the timer will cause this function TimerEventProcessor()
+																				   // to fire again --> read lastinput info and trying to dim the screen again.
+																				   // Because this is an await async loop the GUI functions are not locked up.
+																				   // Here we need to convert idleDelay from minutes to milliseconds and then divide by 2,
+																				   // i.e. 2 mins * (60 * 1000 / 2) = 2 mins * 30000
+                    }
+
+                    t.Start(); // restart timer
+				}
 			}
 		}
 		else if (isDimmed) // if display is dimmed
@@ -421,10 +476,10 @@ public class SettingsForm : Form
             // 
             // checkBoxAutoStart
             // 
-            this.checkBoxAutoStart.Location = new System.Drawing.Point(43, 362);
-            this.checkBoxAutoStart.Margin = new System.Windows.Forms.Padding(6);
+            this.checkBoxAutoStart.Location = new System.Drawing.Point(31, 241);
+            this.checkBoxAutoStart.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxAutoStart.Name = "checkBoxAutoStart";
-            this.checkBoxAutoStart.Size = new System.Drawing.Size(214, 31);
+            this.checkBoxAutoStart.Size = new System.Drawing.Size(156, 21);
             this.checkBoxAutoStart.TabIndex = 1;
             this.checkBoxAutoStart.Text = "Start with Windows";
             this.checkBoxAutoStart.UseVisualStyleBackColor = true;
@@ -433,11 +488,11 @@ public class SettingsForm : Form
             // trackBarIdleDelay
             // 
             this.trackBarIdleDelay.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.trackBarIdleDelay.Location = new System.Drawing.Point(6, 76);
-            this.trackBarIdleDelay.Margin = new System.Windows.Forms.Padding(6);
+            this.trackBarIdleDelay.Location = new System.Drawing.Point(4, 32);
+            this.trackBarIdleDelay.Margin = new System.Windows.Forms.Padding(4);
             this.trackBarIdleDelay.Maximum = 100;
             this.trackBarIdleDelay.Name = "trackBarIdleDelay";
-            this.trackBarIdleDelay.Size = new System.Drawing.Size(575, 56);
+            this.trackBarIdleDelay.Size = new System.Drawing.Size(419, 56);
             this.trackBarIdleDelay.TabIndex = 2;
             this.trackBarIdleDelay.TickFrequency = 10;
             this.trackBarIdleDelay.TickStyle = System.Windows.Forms.TickStyle.Both;
@@ -447,11 +502,11 @@ public class SettingsForm : Form
             // groupBoxIdleDelay
             // 
             this.groupBoxIdleDelay.Controls.Add(this.trackBarIdleDelay);
-            this.groupBoxIdleDelay.Location = new System.Drawing.Point(37, 37);
-            this.groupBoxIdleDelay.Margin = new System.Windows.Forms.Padding(6);
+            this.groupBoxIdleDelay.Location = new System.Drawing.Point(27, 25);
+            this.groupBoxIdleDelay.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxIdleDelay.Name = "groupBoxIdleDelay";
-            this.groupBoxIdleDelay.Padding = new System.Windows.Forms.Padding(6);
-            this.groupBoxIdleDelay.Size = new System.Drawing.Size(587, 138);
+            this.groupBoxIdleDelay.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBoxIdleDelay.Size = new System.Drawing.Size(427, 92);
             this.groupBoxIdleDelay.TabIndex = 4;
             this.groupBoxIdleDelay.TabStop = false;
             this.groupBoxIdleDelay.Text = "Idle Delay - 15 Minutes";
@@ -459,11 +514,11 @@ public class SettingsForm : Form
             // groupBoxBrightness
             // 
             this.groupBoxBrightness.Controls.Add(this.trackBarBrightness);
-            this.groupBoxBrightness.Location = new System.Drawing.Point(37, 212);
-            this.groupBoxBrightness.Margin = new System.Windows.Forms.Padding(6);
+            this.groupBoxBrightness.Location = new System.Drawing.Point(27, 141);
+            this.groupBoxBrightness.Margin = new System.Windows.Forms.Padding(4);
             this.groupBoxBrightness.Name = "groupBoxBrightness";
-            this.groupBoxBrightness.Padding = new System.Windows.Forms.Padding(6);
-            this.groupBoxBrightness.Size = new System.Drawing.Size(587, 138);
+            this.groupBoxBrightness.Padding = new System.Windows.Forms.Padding(4);
+            this.groupBoxBrightness.Size = new System.Drawing.Size(427, 92);
             this.groupBoxBrightness.TabIndex = 5;
             this.groupBoxBrightness.TabStop = false;
             this.groupBoxBrightness.Text = "Brightness - 15% of original brightness";
@@ -471,11 +526,11 @@ public class SettingsForm : Form
             // trackBarBrightness
             // 
             this.trackBarBrightness.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.trackBarBrightness.Location = new System.Drawing.Point(6, 76);
-            this.trackBarBrightness.Margin = new System.Windows.Forms.Padding(6);
+            this.trackBarBrightness.Location = new System.Drawing.Point(4, 32);
+            this.trackBarBrightness.Margin = new System.Windows.Forms.Padding(4);
             this.trackBarBrightness.Maximum = 100;
             this.trackBarBrightness.Name = "trackBarBrightness";
-            this.trackBarBrightness.Size = new System.Drawing.Size(575, 56);
+            this.trackBarBrightness.Size = new System.Drawing.Size(419, 56);
             this.trackBarBrightness.TabIndex = 2;
             this.trackBarBrightness.TickFrequency = 5;
             this.trackBarBrightness.TickStyle = System.Windows.Forms.TickStyle.Both;
@@ -484,28 +539,30 @@ public class SettingsForm : Form
             // 
             // checkBoxMonitorVideo
             // 
-            this.checkBoxMonitorVideo.AutoCheck = true;
             this.checkBoxMonitorVideo.AutoSize = true;
-            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(43, 403);
+            this.checkBoxMonitorVideo.Checked = true;
+            this.checkBoxMonitorVideo.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(31, 269);
+            this.checkBoxMonitorVideo.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxMonitorVideo.Name = "checkBoxMonitorVideo";
-            this.checkBoxMonitorVideo.Size = new System.Drawing.Size(614, 29);
+            this.checkBoxMonitorVideo.Size = new System.Drawing.Size(325, 20);
             this.checkBoxMonitorVideo.TabIndex = 6;
-            this.checkBoxMonitorVideo.Text = "Do not dim when video is playing (start DDA as admin, CPU heavy)";
+            this.checkBoxMonitorVideo.Text = "Do not dim when video is playing (requires Admin)";
             this.checkBoxMonitorVideo.UseVisualStyleBackColor = true;
             this.checkBoxMonitorVideo.CheckedChanged += new System.EventHandler(this.checkBoxMonitorVideo_CheckedChanged);
             // 
             // SettingsForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(667, 463);
+            this.ClientSize = new System.Drawing.Size(485, 309);
             this.Controls.Add(this.checkBoxMonitorVideo);
             this.Controls.Add(this.groupBoxBrightness);
             this.Controls.Add(this.groupBoxIdleDelay);
             this.Controls.Add(this.checkBoxAutoStart);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(6);
+            this.Margin = new System.Windows.Forms.Padding(4);
             this.Name = "SettingsForm";
             this.Text = "Dim Display After Updated";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SettingsForm_FormClosing);
