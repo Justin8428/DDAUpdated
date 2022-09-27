@@ -1,9 +1,13 @@
 # DDAUpdated
 Updated version of DDA
 
-Original exe from mk77ch "Mike" at http://www.surfaceforums.net/threads/wheres-the-dim-display-after-power-setting-in-windows-8-1.6577/
+Original exe from mk77ch "Mike" at http://www.surfaceforums.net/threads/wheres-the-dim-display-after-power-setting-in-windows-8-1.6577/. Decompiled using ILSpy, and then I made a number of changes to the app to make it more suitable for use on modern OLED displays.
 
-Decompiled using ILSpy
+Why does this app exist: 
+ - Since Windows 8 Microsoft has apparently put a "design limitation" to prevent users on Modern Standby systems from setting a custom timeout to dim the screen, instead forcefully setting the screen to dim 15s before the "Turn the screen off" option.
+ - This is a problem for OLED display users as it has been shown that dimming the screen on OLED displays can significantly improve the longevity of the panel. https://www.rtings.com/tv/learn/real-life-oled-burn-in-test.
+ - The "easy" solution would be to disable Modern Standby and revert the system to regular S3 ACPI sleep, however modern versions of Windows no longer support S3 sleep and some OEMs (e.g. Dell, Lenovo) / some laptops with newer processors have even started removing S3 sleep support from BIOS! https://www.reddit.com/r/Dell/comments/h0r56s/getting_back_s3_sleep_and_disabling_modern/
+ - Hence, this project aims to "restore" the dimming settings in a battery / CPU / memory efficient manner.
 
 TODO:
  - fix "Start with Windows" option (auto starting a Windows app as admin cannot be done via the usual registry edits, you need to run a batch script that points to the app)
