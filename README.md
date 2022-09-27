@@ -6,6 +6,7 @@ Original exe from mk77ch "Mike" at http://www.surfaceforums.net/threads/wheres-t
 Decompiled using ILSpy
 
 TODO:
+ - fix "Start with Windows" option (auto starting a Windows app as admin cannot be done via the usual registry edits, you need to run a batch script that points to the app)
  - find a more memory efficient way to query powercfg /requests (currently the app opens a powershell instance in the background, maybe worth investigating if there is a native WMI for it)
  - retain option to set brightness manually
  - better icon
