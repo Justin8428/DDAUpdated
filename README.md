@@ -6,9 +6,7 @@ Original exe from mk77ch "Mike" at http://www.surfaceforums.net/threads/wheres-t
 Decompiled using ILSpy
 
 TODO:
- - disable the dimming when the user is playing a video. You can obtain whether the display is active via powercfg /requests (effectively reading SetThreadExecutionState(ES_DISPLAY_REQUIRED)) but you need admin permissions to do so...
-	 - either make the app as admin in the background all the time (bad!) or run it as a service https://stackoverflow.com/questions/36826733/possible-to-find-all-windows-processes-preventing-automatic-sleep-w-o-admin-rig
-	  - apparently this is an unimplemented feature in windows
+ - find a more memory efficient way to query powercfg /requests (currently the app opens a powershell instance in the background, maybe worth investigating if there is a native WMI for it)
  - retain option to set brightness manually
  - better icon
- - make it monitor independent (record events only if on particular monitor), not sure if possible or easy in Windows (native is LASTINPUTINFO)
+ - make it monitor independent (record events only if on particular monitor), not sure if possible or easy in Windows (native is LASTINPUTINFO). This does not matter too much because WMI Brightness only deals with the internal laptop monitor and not external monitors (even over DDC) but would be cleaner
