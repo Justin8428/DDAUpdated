@@ -4,7 +4,7 @@
     <GenerateAssemblyInfo>False</GenerateAssemblyInfo>
     <OutputType>WinExe</OutputType>
     <UseWindowsForms>True</UseWindowsForms>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net472</TargetFramework>
     <Prefer32Bit>True</Prefer32Bit>
     <Platforms>AnyCPU;x64;ARM64;x86</Platforms>
   </PropertyGroup>
