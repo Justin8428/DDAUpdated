@@ -561,8 +561,11 @@ public class SettingsForm : Form
             this.Controls.Add(this.groupBoxBrightness);
             this.Controls.Add(this.groupBoxIdleDelay);
             this.Controls.Add(this.checkBoxAutoStart);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
+            this.MaximizeBox = false;
+            this.MinimizeBox = false;
             this.Name = "SettingsForm";
             this.Text = "Dim Display After Updated";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SettingsForm_FormClosing);
