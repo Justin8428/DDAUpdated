@@ -6,7 +6,7 @@ Full credits to the author of the original exe (mk77ch "Mike") at http://www.sur
 Why does this app exist: 
  - Since Windows 8 Microsoft has apparently put a "design limitation" to prevent users on Modern Standby systems from setting a custom timeout to dim the screen, instead forcefully setting the screen to dim 15s before the "Turn the screen off" option.
  - This is a problem for OLED display users as it has been shown that dimming the screen on OLED displays can significantly improve the longevity of the panel. https://www.rtings.com/tv/learn/real-life-oled-burn-in-test.
- - The "easy" solution would be to disable Modern Standby and revert the system to regular S3 ACPI sleep, however modern versions of Windows no longer support S3 sleep and some OEMs (e.g. Dell, Lenovo) / some laptops with newer processors have even started removing S3 sleep support from BIOS! https://www.reddit.com/r/Dell/comments/h0r56s/getting_back_s3_sleep_and_disabling_modern/
+ - The "easy" solution would be to disable Modern Standby and revert the system to regular S3 ACPI sleep. However newer laptops (Intel 11th Gen / AMD Ryzen 6000 series or newer) have started outright removing S3 support from the platform firmware! https://www.reddit.com/r/Dell/comments/h0r56s/getting_back_s3_sleep_and_disabling_modern/ https://www.reddit.com/r/Fedora/comments/qmle9b/whats_with_s3_sleep_behavior_on_tigerlake/
  - Hence, this project aims to "restore" the dimming settings in a battery / CPU / memory efficient manner.
 
 TODO:
