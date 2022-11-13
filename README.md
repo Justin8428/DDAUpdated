@@ -14,4 +14,5 @@ TODO:
  - find a more memory efficient way to query powercfg /requests (currently the app opens a powershell instance in the background, maybe worth investigating if there is a native WMI for it)
  - retain option to set brightness manually
  - better icon
+ - maybe incorporate a taskbar dimmer, could take some inspiration from https://github.com/thomasverelst/PressureSpotFixer
  - make it monitor independent (record events only if on particular monitor), not sure if possible or easy in Windows (native is LASTINPUTINFO). This does not matter too much because WMI Brightness only deals with the internal laptop monitor and not external monitors (even over DDC) but would be cleaner
