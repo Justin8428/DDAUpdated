@@ -44,7 +44,7 @@ public class SettingsForm : Form
 
 	private ToolStripMenuItem exitToolStripMenuItem;
 
-	private CheckBox checkBoxAutoStart;
+	// private CheckBox checkBoxAutoStart;
 
     private TrackBar trackBarIdleDelay;
 
@@ -74,9 +74,9 @@ public class SettingsForm : Form
 	public SettingsForm()
 	{
 		InitializeComponent();
-		RegistryKey currentUser = Registry.CurrentUser;
-		RegistryKey registryKey = currentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
-		checkBoxAutoStart.Checked = registryKey.GetValue("DDA") != null;
+		//RegistryKey currentUser = Registry.CurrentUser;
+		//RegistryKey registryKey = currentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
+		//checkBoxAutoStart.Checked = registryKey.GetValue("DDA") != null;
 		trackBarIdleDelay.Value = Settings.Default.IdleDelay;
 		trackBarBrightness.Value = Settings.Default.Brightness;
 		updateIdleDelayLabel();
@@ -431,7 +431,7 @@ public class SettingsForm : Form
             this.contextMenuStrip = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.checkBoxAutoStart = new System.Windows.Forms.CheckBox();
+            // this.checkBoxAutoStart = new System.Windows.Forms.CheckBox();
             this.trackBarIdleDelay = new System.Windows.Forms.TrackBar();
             this.groupBoxIdleDelay = new System.Windows.Forms.GroupBox();
             this.groupBoxBrightness = new System.Windows.Forms.GroupBox();
@@ -557,7 +557,7 @@ public class SettingsForm : Form
             this.Controls.Add(this.checkBoxMonitorVideo);
             this.Controls.Add(this.groupBoxBrightness);
             this.Controls.Add(this.groupBoxIdleDelay);
-            this.Controls.Add(this.checkBoxAutoStart);
+            // this.Controls.Add(this.checkBoxAutoStart);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.Margin = new System.Windows.Forms.Padding(4);
