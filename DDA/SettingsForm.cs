@@ -344,27 +344,28 @@ public class SettingsForm : Form
 		Application.Exit();
 	}
 
-	private void checkBox1_CheckedChanged(object sender, EventArgs e)
-	{
-		if (checkBoxAutoStart.Checked)
-		{
-			RegistryKey currentUser = Registry.CurrentUser;
-			RegistryKey registryKey = currentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
-			if (registryKey.GetValue("DDA") == null)
-			{
-				registryKey.SetValue("DDA", Application.ExecutablePath, RegistryValueKind.ExpandString);
-			}
-		}
-		else
-		{
-			RegistryKey currentUser2 = Registry.CurrentUser;
-			RegistryKey registryKey2 = currentUser2.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
-			if (registryKey2.GetValue("DDA") != null)
-			{
-				registryKey2.DeleteValue("DDA");
-			}
-		}
-	}
+	// remove the checkbox, it doesn't work. Create a Scheduled task in Task Scheduler instead
+	//private void checkBox1_CheckedChanged(object sender, EventArgs e)
+	//{
+	//	if (checkBoxAutoStart.Checked)
+	//	{
+	//		RegistryKey currentUser = Registry.CurrentUser;
+	//		RegistryKey registryKey = currentUser.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
+	//		if (registryKey.GetValue("DDA") == null)
+	//		{
+	//			registryKey.SetValue("DDA", Application.ExecutablePath, RegistryValueKind.ExpandString);
+	//		}
+	//	}
+	//	else
+	//	{
+	//		RegistryKey currentUser2 = Registry.CurrentUser;
+	//		RegistryKey registryKey2 = currentUser2.OpenSubKey("Software\\Microsoft\\Windows\\CurrentVersion\\Run", writable: true);
+	//		if (registryKey2.GetValue("DDA") != null)
+	//		{
+	//			registryKey2.DeleteValue("DDA");
+	//		}
+	//	}
+	//}
 
 	private void updateIdleDelayLabel()
 	{
@@ -476,14 +477,10 @@ public class SettingsForm : Form
             // 
             // checkBoxAutoStart
             // 
-            this.checkBoxAutoStart.Location = new System.Drawing.Point(31, 241);
-            this.checkBoxAutoStart.Margin = new System.Windows.Forms.Padding(4);
-            this.checkBoxAutoStart.Name = "checkBoxAutoStart";
-            this.checkBoxAutoStart.Size = new System.Drawing.Size(156, 21);
-            this.checkBoxAutoStart.TabIndex = 1;
-            this.checkBoxAutoStart.Text = "Start with Windows";
-            this.checkBoxAutoStart.UseVisualStyleBackColor = true;
-            this.checkBoxAutoStart.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            //this.checkBoxAutoStart.Location = new System.Drawing.Point(0, 0);
+            //this.checkBoxAutoStart.Name = "checkBoxAutoStart";
+            //this.checkBoxAutoStart.Size = new System.Drawing.Size(104, 24);
+            //this.checkBoxAutoStart.TabIndex = 7;
             // 
             // trackBarIdleDelay
             // 
@@ -542,7 +539,7 @@ public class SettingsForm : Form
             this.checkBoxMonitorVideo.AutoSize = true;
             this.checkBoxMonitorVideo.Checked = true;
             this.checkBoxMonitorVideo.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(31, 269);
+            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(27, 257);
             this.checkBoxMonitorVideo.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxMonitorVideo.Name = "checkBoxMonitorVideo";
             this.checkBoxMonitorVideo.Size = new System.Drawing.Size(325, 20);

@@ -3,6 +3,8 @@ Updated version of DDA -- Dim Display After settings
 
 Full credits to the author of the original exe (mk77ch "Mike") at http://www.surfaceforums.net/threads/wheres-the-dim-display-after-power-setting-in-windows-8-1.6577/. Decompiled using ILSpy, and then I made a number of changes to the app to make it more suitable for use on modern OLED displays.
 
+To run as startup create an admin task in Task Scheduler, see https://superuser.com/questions/770420/schedule-a-task-with-admin-privileges-without-a-user-prompt-in-windows-7
+
 Why does this app exist: 
  - Since Windows 8 Microsoft has apparently put a "design limitation" to prevent users on Modern Standby systems from setting a custom timeout to dim the screen, instead forcefully setting the screen to dim 15s before the "Turn the screen off" option.
  - This is a problem for OLED display users as it has been shown that dimming the screen on OLED displays can significantly improve the longevity of the panel. https://www.rtings.com/tv/learn/real-life-oled-burn-in-test.
