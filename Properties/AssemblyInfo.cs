@@ -9,7 +9,7 @@ using System.Runtime.Versioning;
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("DDA")]
-[assembly: AssemblyCopyright("Copyright ©  2018, 2022")]
+[assembly: AssemblyCopyright("Copyright ©  2018, 2023")]
 [assembly: AssemblyTrademark("")]
 [assembly: ComVisible(false)]
 [assembly: Guid("0e142d84-a556-420c-9fdf-79dcd8fda37d")]
