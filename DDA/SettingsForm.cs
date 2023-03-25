@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Management;
 using System.Management.Automation;
+using System.Management.Automation.Runspaces;
 // using System.Threading;
 // using System.Diagnostics.Process;
 using System.Runtime.InteropServices;
@@ -152,50 +153,78 @@ public class SettingsForm : Form
 
 	private bool IsPlayingVideo() // determine if the display needs to be kept awake, e.g. playing a video
 	{   // also see https://stackoverflow.com/questions/206323/how-to-execute-command-line-in-c-get-std-out-results 
-		// and https://stackoverflow.com/questions/33654318/c-sharp-run-powershell-command-get-output-as-it-arrives
-		// underlying: https://docs.microsoft.com/en-us/windows/win32/power/system-sleep-criteria
-		// essentially, run the powershell script to see if DISPLAY is active, return true if so, otherwise return false
-		// todo: create a custom runspace for better memory usage https://docs.microsoft.com/en-us/powershell/scripting/developer/hosting/windows-powershell-host-quickstart?view=powershell-7.2, or use code below
-		// apparently for powercfg /requests to run properly you need to compile the exe to the particular platform you are running...!
+        // and https://stackoverflow.com/questions/33654318/c-sharp-run-powershell-command-get-output-as-it-arrives
+        // underlying: https://docs.microsoft.com/en-us/windows/win32/power/system-sleep-criteria
+        // essentially, run the powershell script to see if DISPLAY is active, return true if so, otherwise return false
+        // todo: create a custom runspace for better memory usage https://docs.microsoft.com/en-us/powershell/scripting/developer/hosting/windows-powershell-host-quickstart?view=powershell-7.2, or use code below
+        // apparently for powercfg /requests to run properly you need to compile the exe to the particular platform you are running...!
 
-		PowerShell ps = PowerShell.Create();
-		string script = "(powercfg /requests | Select-String -Pattern 'DISPLAY:' -Context 0,1).Context.DisplayPostContext | Out-String"; // should return 'None.' if display not used
-		// string script = "powercfg /requests"; // alternative is to get the full output and then handle the line reading in C#. Unlikely to be any more memory efficient as we are still opening a PS instance
-		ps.AddScript(script);
+        //PowerShell ps = PowerShell.Create();
+        //string script = "(powercfg /requests | Select-String -Pattern 'DISPLAY:' -Context 0,1).Context.DisplayPostContext | Out-String"; // should return 'None.' if display not used
+        //// string script = "powercfg /requests"; // alternative is to get the full output and then handle the line reading in C#. Unlikely to be any more memory efficient as we are still opening a PS instance
+        //ps.AddScript(script);
 
-		// invoke execution on the pipeline (collecting output)
-		Collection<PSObject> PSOutput = ps.Invoke();
+        //// invoke execution on the pipeline (collecting output)
+        //Collection<PSObject> PSOutput = ps.Invoke();
 
-		// define result variable to prevent code path issues
-		bool resultVar = false; // ignore the video monitoring as failsafe
+        // define result variable to prevent code path issues
+        bool resultVar = false; // ignore the video monitoring as failsafe
 
-		// loop through each output object item
-		// if not run as admin, no objects are returned...!
-		foreach (PSObject outputItem in PSOutput)
+		// start querying and parsing powershell
+        Runspace powercfg_runspace = RunspaceFactory.CreateRunspace();// Create a new runspace
+        powercfg_runspace.Open();// Open the runspace
+		using (PowerShell ps = PowerShell.Create()) // Create a PowerShell object to execute a command
 		{
-			// if null object was dumped to the pipeline during the script then a null object may be present here
-			if (outputItem != null)
+			// Set the runspace for the PowerShell object
+			ps.Runspace = powercfg_runspace;
+
+			// Add relevant commands
+			ps.AddCommand("powercfg");
+			ps.AddCommand("Select-String");
+			ps.AddCommand("Out-String");
+
+			// Invoke the command and get the results
+			string script = "(powercfg /requests | Select-String -Pattern 'DISPLAY:' -Context 0,1).Context.DisplayPostContext | Out-String"; // should return 'None.' if display not used
+																																			 // string script = "powercfg /requests"; // alternative is to get the full output and then handle the line reading in C#. Unlikely to be any more memory efficient as we are still opening a PS instance
+			ps.AddScript(script);
+
+			// invoke execution on the pipeline (collecting output)
+			Collection<PSObject> PSOutput = ps.Invoke();
+
+
+
+			// loop through each output object item
+			// if not run as admin, no objects are returned...!
+			foreach (PSObject outputItem in PSOutput)
 			{
-				// System.Diagnostics.Debug.WriteLine($"Output line: [{outputItem}]"); // view outputs
-				string outputString = outputItem.BaseObject as string; // coerce into string https://stackoverflow.com/questions/37467404/how-to-cast-psobject-to-securestring-cannot-implicitly-convert
-				outputString = outputString.Trim('\r', '\n'); // strip new line characters
-				string noVideoPlaying = "None."; // response from powercfg if there is no video playing
-				string noElevation = "This command requires administrator privileges and must be executed from an elevated command prompt."; // response from powercfg if not run as admin
-				if (String.Equals(outputString, noVideoPlaying) || String.Equals(outputString, noElevation)) // if there is no hook, or powercfg is not run as admin, assume no video is playing (and dim screen)
+				// if null object was dumped to the pipeline during the script then a null object may be present here
+				if (outputItem != null)
 				{
-					resultVar = false;
+					// System.Diagnostics.Debug.WriteLine($"Output line: [{outputItem}]"); // view outputs
+					string outputString = outputItem.BaseObject as string; // coerce into string https://stackoverflow.com/questions/37467404/how-to-cast-psobject-to-securestring-cannot-implicitly-convert
+					outputString = outputString.Trim('\r', '\n'); // strip new line characters
+					string noVideoPlaying = "None."; // response from powercfg if there is no video playing
+					string noElevation = "This command requires administrator privileges and must be executed from an elevated command prompt."; // response from powercfg if not run as admin
+					if (String.Equals(outputString, noVideoPlaying) || String.Equals(outputString, noElevation)) // if there is no hook, or powercfg is not run as admin, assume no video is playing (and dim screen)
+					{
+						resultVar = false;
+					}
+					else
+					{
+						resultVar = true; // the loop iterates over each line of the object. if video is playing, last line will be "Video Wake Lock" which will give rise to the final resultVar
+					}
 				}
 				else
 				{
-					resultVar = true; // the loop iterates over each line of the object. if video is playing, last line will be "Video Wake Lock" which will give rise to the final resultVar
+					resultVar = false; // ignore the video monitoring as failsafe
 				}
 			}
-			else
-			{
-				resultVar = false; // ignore the video monitoring as failsafe
-			}
-		}
-		return resultVar;
+            
+        }
+        powercfg_runspace.Close(); // close powershell instance
+        return resultVar;
+
+
 
 
         // taken from https://stackoverflow.com/questions/14981785/calling-powercfg-requests-from-c-sharp-gives-wrong-values
