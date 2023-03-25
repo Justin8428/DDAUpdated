@@ -19,6 +19,8 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 {
 	private Timer t = new Timer(); // t is the overall timer
 
+    private Timer CursorTrackerTimer = new Timer(); // should sit idle most of the time unless started
+
     private IContainer components = null;
 
 	private NotifyIcon notifyIcon;
@@ -38,6 +40,10 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 	private GroupBox groupBoxBrightness;
 	private CheckBox checkBoxMonitorVideo;
 	private bool checkBoxMonitorVideoChecked = true; // start checked
+    private CheckBox checkBoxWakeCursorOnPrimaryDisplay;
+    private bool checkBoxWakeCursorOnPrimaryDisplayChecked = true; // start checked 
+    // yes I know there are better ways to deal with the checkbox. this works but ugly
+
     private TrackBar trackBarBrightness;
 
 
@@ -50,9 +56,15 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 		updateBrightnessLabel();
 		base.WindowState = FormWindowState.Minimized;
 		base.ShowInTaskbar = false;
-		Hide();
-		t.Tick += TimerEventProcessor; // run TimerEventProcessor() every 250 ms
-		t.Interval = 250;
+        checkBoxWakeCursorOnPrimaryDisplay.Checked = true; // make sure the wake cursor function is active by default
+
+        // kick off the cursor monitoring, if the thing is checked
+        CheckIfCursorIsOnPrimaryDisplayTask();
+
+        Hide();
+		t.Tick += new EventHandler(SetBrightnessAfterMakingAllChecks); // run SetBrightnessAfterMakingAllChecks() every 250 ms
+        //t.Tick += new EventHandler(IsCursorOnPrimaryDisplay); // at the same time run IsCursorOnPrimaryDisplay() // best to not use the same timer, as you will be restarting the same timer again, which resets the IdleDelay()...
+        t.Interval = 250; // make sure this timer is more frequent than the CursorTracket to ensure the correct brightness is restored
 		t.Start();
 	}
 
@@ -85,14 +97,22 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 		Show();
 	}
 
-	private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+	private void exitToolStripMenuItem_Click(object sender, EventArgs e) // delete Timer when application exits ??
 	{
 		notifyIcon.Visible = false;
+
+        // dispose timer t
 		t.Stop();
-		t.Tick -= TimerEventProcessor;
+		t.Tick -= SetBrightnessAfterMakingAllChecks;
 		t.Dispose();
 		t = null;
-		Application.Exit();
+
+        // dispose timer CursorTrackerTimer
+        CursorTrackerTimer.Stop();
+        CursorTrackerTimer.Dispose();
+        CursorTrackerTimer = null;
+
+        Application.Exit();
 	}
 
 	private void updateIdleDelayLabel()
@@ -151,7 +171,19 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 		base.Dispose(disposing);
 	}
 
-	private void InitializeComponent()
+    private void checkBoxWakeCursorOnPrimaryDisplay_CheckedChanged(object sender, EventArgs e) // deal with the useless checkbox shit when it is pressed
+    {
+        if (checkBoxWakeCursorOnPrimaryDisplay.Checked)
+        {
+            checkBoxWakeCursorOnPrimaryDisplayChecked = true;
+            CheckIfCursorIsOnPrimaryDisplayTask(); // start the monitoring, again
+        }
+        else
+        {
+            checkBoxWakeCursorOnPrimaryDisplayChecked = false;
+        }
+    }
+    private void InitializeComponent()
 	{
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SettingsForm));
@@ -164,6 +196,7 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.groupBoxBrightness = new System.Windows.Forms.GroupBox();
             this.trackBarBrightness = new System.Windows.Forms.TrackBar();
             this.checkBoxMonitorVideo = new System.Windows.Forms.CheckBox();
+            this.checkBoxWakeCursorOnPrimaryDisplay = new System.Windows.Forms.CheckBox();
             this.contextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarIdleDelay)).BeginInit();
             this.groupBoxIdleDelay.SuspendLayout();
@@ -259,7 +292,7 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.checkBoxMonitorVideo.AutoSize = true;
             this.checkBoxMonitorVideo.Checked = true;
             this.checkBoxMonitorVideo.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(27, 257);
+            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(27, 249);
             this.checkBoxMonitorVideo.Margin = new System.Windows.Forms.Padding(2);
             this.checkBoxMonitorVideo.Name = "checkBoxMonitorVideo";
             this.checkBoxMonitorVideo.Size = new System.Drawing.Size(325, 20);
@@ -268,12 +301,26 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.checkBoxMonitorVideo.UseVisualStyleBackColor = true;
             this.checkBoxMonitorVideo.CheckedChanged += new System.EventHandler(this.checkBoxMonitorVideo_CheckedChanged);
             // 
+            // checkBoxWakeCursorOnPrimaryDisplay
+            // 
+            this.checkBoxWakeCursorOnPrimaryDisplay.AutoSize = true;
+            this.checkBoxWakeCursorOnPrimaryDisplay.Checked = true;
+            this.checkBoxWakeCursorOnPrimaryDisplay.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBoxWakeCursorOnPrimaryDisplay.Location = new System.Drawing.Point(27, 275);
+            this.checkBoxWakeCursorOnPrimaryDisplay.Name = "checkBoxWakeCursorOnPrimaryDisplay";
+            this.checkBoxWakeCursorOnPrimaryDisplay.Size = new System.Drawing.Size(372, 36);
+            this.checkBoxWakeCursorOnPrimaryDisplay.TabIndex = 7;
+            this.checkBoxWakeCursorOnPrimaryDisplay.Text = "Dim Primary Display after IdleDelay when Cursor is not on \r\nthe Primary Display";
+            this.checkBoxWakeCursorOnPrimaryDisplay.UseVisualStyleBackColor = true;
+            this.checkBoxWakeCursorOnPrimaryDisplay.CheckedChanged += new System.EventHandler(this.checkBoxWakeCursorOnPrimaryDisplay_CheckedChanged);
+            // 
             // SettingsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(485, 309);
+            this.ClientSize = new System.Drawing.Size(485, 321);
+            this.Controls.Add(this.checkBoxWakeCursorOnPrimaryDisplay);
             this.Controls.Add(this.checkBoxMonitorVideo);
             this.Controls.Add(this.groupBoxBrightness);
             this.Controls.Add(this.groupBoxIdleDelay);
@@ -296,4 +343,6 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.PerformLayout();
 
 	}
+
+
 }

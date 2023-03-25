@@ -15,6 +15,8 @@ namespace DDA;
 
 public partial class SettingsForm : Form
 {
+    private DateTime CursorTrackerTimerStartTime; // define variable to store the time whenever CursorTrackerTimer is started
+
     private bool isDimmed = false;
 
     private int restoreTo = 50;
@@ -164,14 +166,20 @@ public partial class SettingsForm : Form
     }
 
     // actual logic to set and unset brightness after given time
-    private async void TimerEventProcessor(object myObject, EventArgs myEventArgs)
+    // if the idle time has passed e.g. 2 mins, (and after video has been checked etc), AND the display is not currently dimmed, dim the display
+    // else, (if the idle time < 2 mins) undim the display
+    // the idle time is checked every tick of the timer (e.g. 250ms).
+    //
+    // REMINDER: idleDelay is in minutes...!! (TODO: convert to seconds)
+    private async void SetBrightnessAfterMakingAllChecks(object myObject, EventArgs myEventArgs)
     {
         TimeSpan idleTime = GetIdleTime();
         // set initial condition as 10s if IdleDelay is set to 0
         // here we check that the idle time has passed the time set by user
         if ((Settings.Default.IdleDelay == 0 && idleTime.TotalSeconds >= 10.0) || (Settings.Default.IdleDelay >= 1 && idleTime.TotalMinutes >= (double)Settings.Default.IdleDelay))
         {
-
+            // if the idle time has passed the time set by user
+            // as soon as you move the mouse, the idle time has NOT passed the threshold, it goes to the next part
             if (!isDimmed) // if display is not dimmed 
             {
 
@@ -188,7 +196,8 @@ public partial class SettingsForm : Form
 
                 if (!isPlayingVideo) // and not playing video
                 {
-                    restoreTo = GetBrightness();
+                    // should move this code into a function as it is repeated
+                    restoreTo = GetBrightness(); // remember the display is not dimmed; the current brightness is the brightness you want to restore to
                     // SetBrightness(Settings.Default.Brightness); // set the brightness directly specified by user on form
 
                     // dim the screen 
@@ -231,11 +240,107 @@ public partial class SettingsForm : Form
                 }
             }
         }
-        else if (isDimmed) // if display is dimmed
+
+        else // idle time has NOT passed the threshold, e.g. there is still user activity
+             // to understand how this works, see the SetBrightnessAfterMakingAllChekcsDocumentation.xlsx for a further explanation
         {
-            SetBrightness(restoreTo);
-            isDimmed = false;
+            if (IsCursorOnPrimaryDisplayBool)
+            {
+                if (CursorTrackerTimer.Enabled)
+                {
+                    // reset the timer and store the timer start time
+                    CursorTrackerTimer.Stop();
+                    CursorTrackerTimerStartTime = DateTime.Now;
+                    CursorTrackerTimer.Start();
+                }
+                    // check if screen is already dimmed
+                if (isDimmed)
+                {
+                    // restore brightness; undim screen
+                    SetBrightness(restoreTo);
+                    isDimmed = false;
+                }
+                
+            } 
+            else // cursor not on primary display
+            {
+                if (!isDimmed) // screen is on full brightness
+                { 
+                    if (!CursorTrackerTimer.Enabled) // if timer (for how long the cursor is NOT on the primary screen) is not started, start the timer
+                    {
+                        CursorTrackerTimerStartTime = DateTime.Now;
+                        CursorTrackerTimer.Start();
+                    } 
+                    else 
+                    {
+                        TimeSpan elapsedTime = DateTime.Now - CursorTrackerTimerStartTime; // calculate elapsed time for CursorTrackerTimer
+                        Decimal elapsedTimeMins = Convert.ToDecimal(elapsedTime.TotalMinutes); // convert to Minutes for comparison
+
+
+                        // temporary hack job to deal with the fact that IdleDelay = 10s is set to Settings.Default.IdleDelay = 0
+                        // TODO: set the GUI, so the scale is in seconds, instead of minutes
+                        Decimal IdleDelayDecimal = 1;
+                        if (Settings.Default.IdleDelay == 0) { IdleDelayDecimal = (decimal)(1/6); }  // hardcode the Setting = 0 as 1/6 = 10s of time
+                        else { IdleDelayDecimal = Convert.ToDecimal(IdleDelayDecimal); }// else just convert it to a decimal
+
+
+                        // cursor is away from primary monitor for longer than the threshold -- dim the screen, stop and reset the timer
+                        if (elapsedTimeMins > IdleDelayDecimal) 
+                        {
+                            // dim the screen 
+                            // should move this code into a function as it is repeated
+                            restoreTo = GetBrightness(); // remember the display is not dimmed; the current brightness is the brightness you want to restore to
+                            decimal setBrightnessTo = (decimal)restoreTo * ((decimal)Settings.Default.Brightness / 100); // set to original * (specified by user / 100), i.e. % of original
+                            int setBrightnessToRounded = (int)Math.Round(setBrightnessTo, 0); // round the calculated value. because C# doesn't let you do operations on int or double directly
+                            SetBrightness(setBrightnessToRounded);
+                            isDimmed = true;
+
+                            // reset timer
+                            CursorTrackerTimer.Stop();
+                        }
+                    }
+                }
+            }
+            // other two do nothing
+
+
+            // older code that does not incorporate timer -- remove later
+            //if (!isDimmed && !IsCursorOnPrimaryDisplayBool) // if
+            //                                               // 1. the screen is NOT (already) dimmed, AND
+            //                                               // 2. cursor is NOT on the primary display, -- this is polled asynchronously every ~500ms
+            //                                               // then DO dim the primary display
+            //{
+            //    // dim the screen 
+            //    // should move this code into a function as it is repeated
+            //    restoreTo = GetBrightness(); // remember the display is not dimmed; the current brightness is the brightness you want to restore to
+            //    decimal setBrightnessTo = (decimal)restoreTo * ((decimal)Settings.Default.Brightness / 100); // set to original * (specified by user / 100), i.e. % of original
+            //    int setBrightnessToRounded = (int)Math.Round(setBrightnessTo, 0); // round the calculated value. because C# doesn't let you do operations on int or double directly
+            //    SetBrightness(setBrightnessToRounded);
+            //    isDimmed = true;
+            //} 
+            
+            //else if (isDimmed && IsCursorOnPrimaryDisplayBool) // if
+            //                                                   // 1. the screen is already dimmed, AND
+            //                                                   // 2. the cursor is on the primary display,
+            //                                                   // DO un-dim the primary display
+            //{
+            //    // restore brightness
+            //    SetBrightness(restoreTo);
+            //    isDimmed = false;
+            //}
+
+            // the other two conditions, do nothing
+            
+
+            // all of this relies on the fact that the primary display is the OLED display we want to dim
+            // (i.e. most laptop users, as long as the laptop display is always set as primary (or off, we don't care how many times the laptop brightness is adjusted when it is off)
+            // 
+            // in "theory", we should be checking the cursor location at the same time as firing this function. But currently the video check suspends the timer.
+            // this is not a hard fix; CursorTracker just needs to be rewritten as an async function using the timer, rather than currently spawning its own thread (maybe this is more desirable?)
+            // but currently I cannot be bothered. TODO later
         }
+
+
     }
 
 }
