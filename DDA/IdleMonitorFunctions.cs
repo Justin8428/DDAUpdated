@@ -274,18 +274,18 @@ public partial class SettingsForm : Form
                     else 
                     {
                         TimeSpan elapsedTime = DateTime.Now - CursorTrackerTimerStartTime; // calculate elapsed time for CursorTrackerTimer
-                        Decimal elapsedTimeMins = Convert.ToDecimal(elapsedTime.TotalMinutes); // convert to Minutes for comparison
-
+                        int elapsedTimeSec = Convert.ToInt32(elapsedTime.TotalSeconds); // convert to Seconds for comparison
+                        int IdleDelaySec = (int)CursorIdleDelayNumericUpDown.Value;
 
                         // temporary hack job to deal with the fact that IdleDelay = 10s is set to Settings.Default.IdleDelay = 0
                         // TODO: set the GUI, so the scale is in seconds, instead of minutes
-                        Decimal IdleDelayDecimal = 1;
-                        if (Settings.Default.IdleDelay == 0) { IdleDelayDecimal = (decimal)(1/6); }  // hardcode the Setting = 0 as 1/6 = 10s of time
-                        else { IdleDelayDecimal = Convert.ToDecimal(IdleDelayDecimal); }// else just convert it to a decimal
+                        //Decimal IdleDelayDecimal = 1;
+                        //if (Settings.Default.IdleDelay == 0) { IdleDelayDecimal = (decimal)(1/6); }  // hardcode the Setting = 0 as 1/6 = 10s of time
+                        //else { IdleDelayDecimal = Convert.ToDecimal(IdleDelayDecimal); }// else just convert it to a decimal
 
 
                         // cursor is away from primary monitor for longer than the threshold -- dim the screen, stop and reset the timer
-                        if (elapsedTimeMins > IdleDelayDecimal) 
+                        if (elapsedTimeSec > IdleDelaySec) 
                         {
                             // dim the screen 
                             // should move this code into a function as it is repeated

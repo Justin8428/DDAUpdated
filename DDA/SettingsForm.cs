@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
@@ -8,6 +9,7 @@ using System.Management.Automation;
 // using System.Threading;
 // using System.Diagnostics.Process;
 using System.Runtime.InteropServices;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using DDA.Properties;
@@ -42,6 +44,10 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 	private bool checkBoxMonitorVideoChecked = true; // start checked
     private CheckBox checkBoxWakeCursorOnPrimaryDisplay;
     private bool checkBoxWakeCursorOnPrimaryDisplayChecked = true; // start checked 
+    private LinkLabel linkLabel1;
+    private NumericUpDown CursorIdleDelayNumericUpDown;
+    private Label label1;
+
     // yes I know there are better ways to deal with the checkbox. this works but ugly
 
     private TrackBar trackBarBrightness;
@@ -197,11 +203,15 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.trackBarBrightness = new System.Windows.Forms.TrackBar();
             this.checkBoxMonitorVideo = new System.Windows.Forms.CheckBox();
             this.checkBoxWakeCursorOnPrimaryDisplay = new System.Windows.Forms.CheckBox();
+            this.linkLabel1 = new System.Windows.Forms.LinkLabel();
+            this.label1 = new System.Windows.Forms.Label();
+            this.CursorIdleDelayNumericUpDown = new System.Windows.Forms.NumericUpDown();
             this.contextMenuStrip.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarIdleDelay)).BeginInit();
             this.groupBoxIdleDelay.SuspendLayout();
             this.groupBoxBrightness.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarBrightness)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.CursorIdleDelayNumericUpDown)).BeginInit();
             this.SuspendLayout();
             // 
             // notifyIcon
@@ -219,30 +229,30 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.settingsToolStripMenuItem,
             this.exitToolStripMenuItem});
             this.contextMenuStrip.Name = "contextMenuStrip";
-            this.contextMenuStrip.Size = new System.Drawing.Size(132, 52);
+            this.contextMenuStrip.Size = new System.Drawing.Size(161, 76);
             // 
             // settingsToolStripMenuItem
             // 
             this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
-            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(131, 24);
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(160, 36);
             this.settingsToolStripMenuItem.Text = "Settings";
             this.settingsToolStripMenuItem.Click += new System.EventHandler(this.settingsToolStripMenuItem_Click);
             // 
             // exitToolStripMenuItem
             // 
             this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(131, 24);
+            this.exitToolStripMenuItem.Size = new System.Drawing.Size(160, 36);
             this.exitToolStripMenuItem.Text = "Exit";
             this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
             // 
             // trackBarIdleDelay
             // 
             this.trackBarIdleDelay.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.trackBarIdleDelay.Location = new System.Drawing.Point(4, 32);
-            this.trackBarIdleDelay.Margin = new System.Windows.Forms.Padding(4);
+            this.trackBarIdleDelay.Location = new System.Drawing.Point(6, 52);
+            this.trackBarIdleDelay.Margin = new System.Windows.Forms.Padding(6);
             this.trackBarIdleDelay.Maximum = 100;
             this.trackBarIdleDelay.Name = "trackBarIdleDelay";
-            this.trackBarIdleDelay.Size = new System.Drawing.Size(419, 56);
+            this.trackBarIdleDelay.Size = new System.Drawing.Size(575, 80);
             this.trackBarIdleDelay.TabIndex = 2;
             this.trackBarIdleDelay.TickFrequency = 10;
             this.trackBarIdleDelay.TickStyle = System.Windows.Forms.TickStyle.Both;
@@ -252,11 +262,11 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             // groupBoxIdleDelay
             // 
             this.groupBoxIdleDelay.Controls.Add(this.trackBarIdleDelay);
-            this.groupBoxIdleDelay.Location = new System.Drawing.Point(27, 25);
-            this.groupBoxIdleDelay.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxIdleDelay.Location = new System.Drawing.Point(37, 38);
+            this.groupBoxIdleDelay.Margin = new System.Windows.Forms.Padding(6);
             this.groupBoxIdleDelay.Name = "groupBoxIdleDelay";
-            this.groupBoxIdleDelay.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBoxIdleDelay.Size = new System.Drawing.Size(427, 92);
+            this.groupBoxIdleDelay.Padding = new System.Windows.Forms.Padding(6);
+            this.groupBoxIdleDelay.Size = new System.Drawing.Size(587, 138);
             this.groupBoxIdleDelay.TabIndex = 4;
             this.groupBoxIdleDelay.TabStop = false;
             this.groupBoxIdleDelay.Text = "Idle Delay - 15 Minutes";
@@ -264,11 +274,11 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             // groupBoxBrightness
             // 
             this.groupBoxBrightness.Controls.Add(this.trackBarBrightness);
-            this.groupBoxBrightness.Location = new System.Drawing.Point(27, 141);
-            this.groupBoxBrightness.Margin = new System.Windows.Forms.Padding(4);
+            this.groupBoxBrightness.Location = new System.Drawing.Point(37, 212);
+            this.groupBoxBrightness.Margin = new System.Windows.Forms.Padding(6);
             this.groupBoxBrightness.Name = "groupBoxBrightness";
-            this.groupBoxBrightness.Padding = new System.Windows.Forms.Padding(4);
-            this.groupBoxBrightness.Size = new System.Drawing.Size(427, 92);
+            this.groupBoxBrightness.Padding = new System.Windows.Forms.Padding(6);
+            this.groupBoxBrightness.Size = new System.Drawing.Size(587, 138);
             this.groupBoxBrightness.TabIndex = 5;
             this.groupBoxBrightness.TabStop = false;
             this.groupBoxBrightness.Text = "Brightness - 15% of original brightness";
@@ -276,11 +286,11 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             // trackBarBrightness
             // 
             this.trackBarBrightness.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.trackBarBrightness.Location = new System.Drawing.Point(4, 32);
-            this.trackBarBrightness.Margin = new System.Windows.Forms.Padding(4);
+            this.trackBarBrightness.Location = new System.Drawing.Point(6, 52);
+            this.trackBarBrightness.Margin = new System.Windows.Forms.Padding(6);
             this.trackBarBrightness.Maximum = 100;
             this.trackBarBrightness.Name = "trackBarBrightness";
-            this.trackBarBrightness.Size = new System.Drawing.Size(419, 56);
+            this.trackBarBrightness.Size = new System.Drawing.Size(575, 80);
             this.trackBarBrightness.TabIndex = 2;
             this.trackBarBrightness.TickFrequency = 5;
             this.trackBarBrightness.TickStyle = System.Windows.Forms.TickStyle.Both;
@@ -292,10 +302,9 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.checkBoxMonitorVideo.AutoSize = true;
             this.checkBoxMonitorVideo.Checked = true;
             this.checkBoxMonitorVideo.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(27, 249);
-            this.checkBoxMonitorVideo.Margin = new System.Windows.Forms.Padding(2);
+            this.checkBoxMonitorVideo.Location = new System.Drawing.Point(37, 374);
             this.checkBoxMonitorVideo.Name = "checkBoxMonitorVideo";
-            this.checkBoxMonitorVideo.Size = new System.Drawing.Size(325, 20);
+            this.checkBoxMonitorVideo.Size = new System.Drawing.Size(471, 29);
             this.checkBoxMonitorVideo.TabIndex = 6;
             this.checkBoxMonitorVideo.Text = "Do not dim when video is playing (requires Admin)";
             this.checkBoxMonitorVideo.UseVisualStyleBackColor = true;
@@ -306,32 +315,83 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.checkBoxWakeCursorOnPrimaryDisplay.AutoSize = true;
             this.checkBoxWakeCursorOnPrimaryDisplay.Checked = true;
             this.checkBoxWakeCursorOnPrimaryDisplay.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.checkBoxWakeCursorOnPrimaryDisplay.Location = new System.Drawing.Point(27, 275);
+            this.checkBoxWakeCursorOnPrimaryDisplay.Location = new System.Drawing.Point(37, 412);
+            this.checkBoxWakeCursorOnPrimaryDisplay.Margin = new System.Windows.Forms.Padding(4);
             this.checkBoxWakeCursorOnPrimaryDisplay.Name = "checkBoxWakeCursorOnPrimaryDisplay";
-            this.checkBoxWakeCursorOnPrimaryDisplay.Size = new System.Drawing.Size(372, 36);
+            this.checkBoxWakeCursorOnPrimaryDisplay.Size = new System.Drawing.Size(399, 54);
             this.checkBoxWakeCursorOnPrimaryDisplay.TabIndex = 7;
-            this.checkBoxWakeCursorOnPrimaryDisplay.Text = "Dim Primary Display after IdleDelay when Cursor is not on \r\nthe Primary Display";
+            this.checkBoxWakeCursorOnPrimaryDisplay.Text = "Dim Primary Display after \r\nwhen Cursor is not on the Primary Display";
             this.checkBoxWakeCursorOnPrimaryDisplay.UseVisualStyleBackColor = true;
             this.checkBoxWakeCursorOnPrimaryDisplay.CheckedChanged += new System.EventHandler(this.checkBoxWakeCursorOnPrimaryDisplay_CheckedChanged);
             // 
+            // linkLabel1
+            // 
+            this.linkLabel1.AutoSize = true;
+            this.linkLabel1.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.linkLabel1.Location = new System.Drawing.Point(33, 490);
+            this.linkLabel1.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
+            this.linkLabel1.Name = "linkLabel1";
+            this.linkLabel1.Size = new System.Drawing.Size(127, 25);
+            this.linkLabel1.TabIndex = 8;
+            this.linkLabel1.TabStop = true;
+            this.linkLabel1.Text = "Version 2.4.1";
+            this.linkLabel1.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkLabel1_LinkClicked);
+            // 
+            // label1
+            // 
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(358, 412);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(86, 25);
+            this.label1.TabIndex = 10;
+            this.label1.Text = "seconds";
+            this.label1.Click += new System.EventHandler(this.label1_Click_1);
+            // 
+            // CursorIdleDelayNumericUpDown
+            // 
+            this.CursorIdleDelayNumericUpDown.Location = new System.Drawing.Point(290, 408);
+            this.CursorIdleDelayNumericUpDown.Maximum = new decimal(new int[] {
+            10000,
+            0,
+            0,
+            0});
+            this.CursorIdleDelayNumericUpDown.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            this.CursorIdleDelayNumericUpDown.Name = "CursorIdleDelayNumericUpDown";
+            this.CursorIdleDelayNumericUpDown.Size = new System.Drawing.Size(62, 29);
+            this.CursorIdleDelayNumericUpDown.TabIndex = 9;
+            this.CursorIdleDelayNumericUpDown.Value = new decimal(new int[] {
+            30,
+            0,
+            0,
+            0});
+            this.CursorIdleDelayNumericUpDown.ValueChanged += new System.EventHandler(this.numericUpDown1_ValueChanged);
+            // 
             // SettingsForm
             // 
-            this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(11F, 24F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.Control;
-            this.ClientSize = new System.Drawing.Size(485, 321);
+            this.ClientSize = new System.Drawing.Size(667, 528);
+            this.Controls.Add(this.label1);
+            this.Controls.Add(this.CursorIdleDelayNumericUpDown);
+            this.Controls.Add(this.linkLabel1);
             this.Controls.Add(this.checkBoxWakeCursorOnPrimaryDisplay);
             this.Controls.Add(this.checkBoxMonitorVideo);
             this.Controls.Add(this.groupBoxBrightness);
             this.Controls.Add(this.groupBoxIdleDelay);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
-            this.Margin = new System.Windows.Forms.Padding(4);
+            this.Margin = new System.Windows.Forms.Padding(6);
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "SettingsForm";
             this.Text = "Dim Display After Updated";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.SettingsForm_FormClosing);
+            this.Load += new System.EventHandler(this.SettingsForm_Load);
             this.contextMenuStrip.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.trackBarIdleDelay)).EndInit();
             this.groupBoxIdleDelay.ResumeLayout(false);
@@ -339,10 +399,35 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
             this.groupBoxBrightness.ResumeLayout(false);
             this.groupBoxBrightness.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.trackBarBrightness)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.CursorIdleDelayNumericUpDown)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
 	}
 
+    private void SettingsForm_Load(object sender, EventArgs e)
+    {
 
+    }
+
+    private void label1_Click(object sender, EventArgs e)
+    {
+
+    }
+
+    private void linkLabel1_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+    {
+        string AuthorURL = "https://github.com/Justin8428/DDAUpdated";
+        System.Diagnostics.Process.Start(AuthorURL);
+    }
+
+    private void label1_Click_1(object sender, EventArgs e)
+    {
+
+    }
+
+    private void numericUpDown1_ValueChanged(object sender, EventArgs e)
+    {
+
+    }
 }
