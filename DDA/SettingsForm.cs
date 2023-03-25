@@ -19,10 +19,6 @@ public partial class SettingsForm : Form // some functions split into IdleMonito
 {
 	private Timer t = new Timer(); // t is the overall timer
 
-	private bool isDimmed = false;
-
-	private int restoreTo = 50;
-
     private IContainer components = null;
 
 	private NotifyIcon notifyIcon;

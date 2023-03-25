@@ -15,6 +15,9 @@ namespace DDA;
 
 public partial class SettingsForm : Form
 {
+    private bool isDimmed = false;
+
+    private int restoreTo = 50;
     private struct LASTINPUTINFO
     {
         public static readonly int SizeOf = Marshal.SizeOf(typeof(LASTINPUTINFO));
