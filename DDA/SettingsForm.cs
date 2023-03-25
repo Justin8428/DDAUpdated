@@ -189,7 +189,7 @@ public class SettingsForm : Form
 			ps.AddScript(script);
 
 			// invoke execution on the pipeline (collecting output)
-			Collection<PSObject> PSOutput = ps.Invoke();
+			Collection<PSObject> PSOutput = ps.Invoke(); // may not work directly with custom runspace; read the documentation
 
 
 
